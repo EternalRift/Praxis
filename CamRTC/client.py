@@ -50,6 +50,8 @@ class ClientRTC:
         try:
             while True: 
                 frame = await self.video_track.recv()
+                yield frame.to_ndarray(format="bgr24")
+                #returns numpy array that can be used within cv2 or any video processing function / libary
                 return frame
         except Exception as e:
             print("FUCK!")

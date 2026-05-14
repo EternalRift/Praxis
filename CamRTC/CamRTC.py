@@ -3,17 +3,20 @@ import client
 import os
 
 
-def ReadParams():
+def ReadParams(string):
     #funciton to read a settings txt to set correct ip and port for both host
     #and client TOOD: Provide instruction on how to correctly set params!
     file = os.open("settings.txt")
-    pass 
+    for i in string,len(file):
+
+        if i == string:
+            break
 
 
 class HeadsetStream:
     def __init__(self):
-        self.ip = ip 
-        self.port = port
+        self.ip = ReadParams('hostIP')
+        self.port = 8888
 
     def start():
         headset = host.stream()
@@ -22,7 +25,8 @@ class HeadsetStream:
 
 class HeadsetView: 
     def __init__(self):
-        self.jetson = client.ClientRTC()
+        self.ip = ReadParams('hostIP')
+        self.jetson = client.ClientRTC(self.ip,8888)
         self.jeston.start()
     
     def view(self):

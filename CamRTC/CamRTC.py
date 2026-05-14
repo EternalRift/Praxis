@@ -10,15 +10,25 @@ def ReadParams():
     pass 
 
 
-class HeadsetView: 
-    def start_view():
-        #init host stream class and starts the camera stream
+class HeadsetStream:
+    def __init__(self):
+        self.ip = ip 
+        self.port = port
+
+    def start():
         headset = host.stream()
         headset.start()
 
 
-    def stream_view():
-        pass 
+class HeadsetView: 
+    def __init__(self):
+        self.jetson = client.ClientRTC()
+        self.jeston.start()
+    
+    def view(self):
+        #returns a pyAV stream to be piped into desired functions
+        return self.jetson.stream()
+        
 
 
 HeadsetView.start_view()

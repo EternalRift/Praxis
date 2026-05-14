@@ -4,3 +4,4 @@ host.py is the custom libary to run on the headset to send incoming camera frame
 
 client.py is the custom libary to run on the jetson to handle the incoming video frames from the 'host.py' file and then enable the parsing of these video frames to be utilised in more client side applicaitons within this framework. *for now it will simply spawn a window to display the incoming video frames this will be changed to impliment simple returning of cv2 video frames*
 
+settings.txt is the file to set paramiters for the client and host.py files in terms of required ip and port for both files TODO:add more detail!

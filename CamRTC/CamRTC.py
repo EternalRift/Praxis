@@ -6,11 +6,11 @@ import os
 def ReadParams(string):
     #funciton to read a settings txt to set correct ip and port for both host
     #and client TOOD: Provide instruction on how to correctly set params!
-    file = os.open("settings.txt")
-    for i in string,len(file):
-
-        if i == string:
-            break
+   with os.open('settings.txt','r') as infile:
+       for line in infile:
+           if line.startswith(string):
+               return line
+               
 
 
 class HeadsetStream:
@@ -30,9 +30,9 @@ class HeadsetView:
         self.jeston.start()
     
     def view(self):
-        #returns a pyAV stream to be piped into desired functions
+        #returns a pyAV stream to be piped into desired functions, piped return is a cv2 stream!
         return self.jetson.stream()
         
 
-
-HeadsetView.start_view()
+if __name__ == "__main__":
+    print("ERROR \nThis program is intended as a libary and cannot function indipenditly please RTFM!!!")

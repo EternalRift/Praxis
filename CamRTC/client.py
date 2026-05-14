@@ -50,6 +50,7 @@ class ClientRTC:
         try:
             while True: 
                 frame = await self.video_track.recv()
+                return frame
         except Exception as e:
             print("FUCK!")
         

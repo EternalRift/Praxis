@@ -6,3 +6,9 @@ CamRTC/__pycache__/__init__.cpython-313.pyc
 .gitignore
 CamRTC/__pycache__/client.cpython-313.pyc
 CamRTC/__pycache__/host.cpython-313.pyc
+ScrnRTC/__pycache__/client.cpython-313.pyc
+.gitignore
+ScrnRTC/__pycache__/__init__.cpython-313.pyc
+.gitignore
+testscrn.py
+ScrnRTC/__pycache__/host.cpython-313.pyc

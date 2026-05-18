@@ -1,57 +1,63 @@
-import av 
-import cv2 
-import asyncio 
+import asyncio
 import json 
-from aiortc import RTCPeerConnection,RTCSessionDescription
+import numpy as np 
+from aiortc import RTCPeerConnection, RTCSessionDescription
 
-
-class ClientRTC:
-    def __init__(self,host_ip,port=8888):
-        self.host_ip = host_ip 
-        self.port = port 
+class Receiver:
+    def __init__(self,host,port=8888):
+        self.host = host 
+        self.port = port
         self.pc = RTCPeerConnection()
-        self.video_track = None 
-        self._connection_ready = asyncio.Event()
-    
-    
-    async def start(self):
-        @self.pc.on("track")
-        def on_track(track):
-            if track.kind == "video":
-                self.video_track = track 
-                self._connection_ready.set()
-                
-        self.pc.addTransceiver("video",direction="recvonly")
+        self.frame_queue = asyncio.Queue()
+        self.pc.on("track", self._on_track)
 
-        offer = await self.pc.createOffer()
-        await self.pc.setLocalDescription(offer)
+    def _on_track(self,track):
+        if track.kind == "video":
+            print("Video Track Acknowlaged, starting Capture Loop")
+            asyncio.ensure_future(self._capture_loop(track))
 
+    async def _capture_loop(self,track):
+        while True:
+            try:
+                frame = await track.recv()
+                img = frame.to_ndarray(format="bgr24")
+                await self.frame_queue.put(img)
+            except Exception as e:
+                print(f"Stream Has Ended Or An Error Has Occoured:{e}")
+                break 
+
+    async def _setup_connection(self):
+        reader, writer = await asyncio.open_connection(self.host,self.port)
         try:
-            reader , writer = await asyncio.open_connection(self.host_ip,self.port)
-            payload = json.dumps({"sdp":self.pc.localDescription.sdp,"type":self.pc.localDescription.type})
-            writer.write(payload.encode())
+            #Ask for offer
+            writer.write(b"GET_OFFER")
             await writer.drain()
+            # Obtain Offer From Host
+            offer_data = (await reader.read(4096)).decode()
+            offer_dict = json.loads(offer_data)
+            offer = RTCSessionDescription(sdp=offer_dict["sdp"],type=offer_dict["type"])
 
-            data = await reader.read(8192)
-            awnser_data = json.loads(data.decode())
-            awnser = RTCSessionDescription(sdp=awnser_data["sdp"], type=awnser_data["type"])
-            await self.pc.setRemoteDescription(awnser)
+            # Set Remote Description and Create Answer
+            await self.pc.setRemoteDescription(offer)
+            answer = await self.pc.createAnswer()
+            await self.pc.setLocalDescription(answer)
 
+            #Send Answer back to host 
+            answer_json = json.dumps({
+                "sdp": self.pc.localDescription.sdp,
+                "type": self.pc.localDescription.type
+            })
+            writer.write(answer_json.encode())
+            await writer.drain()
+            print(f"Connected To {self.host}. Stream Starting!")
+        finally:
             writer.close()
             await writer.wait_closed()
-
-        except Exception as e: 
-            return False
-        await self._connection_ready.wait()
-        return True
     async def stream(self):
-        if not self.video_track: 
-            raise RuntimeError("No Video Stream Avaliable Did you call connect function?")
-        try:
-            while True: 
-                frame = await self.video_track.recv()
-        except Exception as e:
-            print("FUCK!")
-        
+        await self._setup_connection()
+        while True:
+            frame = await self.frame_queue.get()
+            yield frame 
+
 
 
